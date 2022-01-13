@@ -1,0 +1,8 @@
+# ignore all edf files
+*.edf
+
+# ignore all pkl files
+*.pkl
+
+# ignore .idea file
+.idea
