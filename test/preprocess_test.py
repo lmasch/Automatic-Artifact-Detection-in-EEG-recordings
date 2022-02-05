@@ -47,7 +47,7 @@ class PreprocessTest(unittest.TestCase):
 
     def test_label_correctness(self):
 
-        preprocessor = Preprocessing(False, 2, True, 0.05)
+        preprocessor = Preprocessing("lstm", False, 2, True, 0.05)
         chunks, labels = preprocessor.chunk_label(self.test_df, self.test_df_labels, self.test_patientID)
         # create the true labels
         true_labels = np.zeros(100)
@@ -62,7 +62,7 @@ class PreprocessTest(unittest.TestCase):
 
     def test_len_chunks(self):
 
-        preprocessor = Preprocessing(False, 2, True, 0)
+        preprocessor = Preprocessing("lstm", False, 2, True, 0)
         chunks, labels = preprocessor.chunk_label(self.test_df, self.test_df_labels, self.test_patientID)
         sec = len(self.test_df)/self.SAMPLING_RATE
         len_chunks = sec-1
@@ -72,7 +72,7 @@ class PreprocessTest(unittest.TestCase):
 
     def test_splitting(self):
 
-        preprocessor = Preprocessing(False, 2, True, 0.05)
+        preprocessor = Preprocessing("lstm", False, 2, True, 0.05)
         patientIDs = [str(i) for i in range(9)]
 
         df_labels = pd.DataFrame(columns=["key", "start_time", "stop_time"])
