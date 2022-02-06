@@ -147,15 +147,11 @@ class Preprocessing:
         df = df[df_cond == False].dropna(thresh=16).fillna(df)
 
         additional = 1
-        end = 0
+        end = len(df.iloc[:, 0]) % (self.SAMPLING_RATE * self.sec)
         # if overlap is False and the amount of seconds is bigger than 1 we need to
-        # adjust the step size and possibly the end point in the following for loop
+        # adjust the step size
         if self.overlap == False and self.sec > 1:
             additional = self.sec
-            end = len(df.iloc[:, 0]) % (self.SAMPLING_RATE * self.sec)
-        # if overlap is true we have to adjust the end parameter for our for-loop
-        elif self.overlap:
-            end = self.SAMPLING_RATE
 
         # create lists which store the data chunks and the labels
         chunks = []
