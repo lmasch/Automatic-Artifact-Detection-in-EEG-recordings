@@ -1,15 +1,19 @@
 import os
+import dask
 import matplotlib
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
+import dask.array as da
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 matplotlib.use('Agg')
+dask.config.set({"array.slicing.split_large_chunks": False})
 
 
 class Preprocessing:
 
-    def __init__(self, model, std, sec, overlap, exclude, num):
+    def __init__(self, model, std, sec, overlap, exclude, num, image_size):
         """
         Initialization of the Preprocessing object
 
@@ -22,12 +26,14 @@ class Preprocessing:
         """
 
         self.SAMPLING_RATE = 250
+        self.channels = 22
         self.model = model
         self.std = std
         self.sec = sec
         self.overlap = overlap
         self.exclude = exclude
         self.num = num
+        self.image_size = image_size
 
     def forward_shift(self, df, num):
         """
@@ -114,11 +120,11 @@ class Preprocessing:
 
         hist_matrix = self.histogram_matrix(array)
 
-        fig, ax = plt.subplots(figsize=(2, 2))
+        fig, ax = plt.subplots(figsize=(self.image_size, self.image_size))
         ax = plt.Axes(fig, [0., 0., 1., 1.])
         ax.axis("off")
         fig.add_axes(ax)
-        plt.contourf(hist_matrix, levels=22, cmap="jet")
+        plt.contourf(hist_matrix, levels=self.channels, cmap="jet")
         canvas = plt.gca().figure.canvas
         canvas.draw()
         data = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
@@ -143,15 +149,17 @@ class Preprocessing:
 
         # filter out consecutively occurring values
         df_cond = self.forward_shift(df, self.num) | self.backward_shift(df, self.num) | self.in_between(df, self.num)
-        #print(f"The current file with ID {identifier} contains digital artifacts.") if len(df[df_cond == False].dropna()) != len(df.iloc[:, 0]) else None
         df = df[df_cond == False].dropna(thresh=16).fillna(df)
 
         additional = 1
-        end = len(df.iloc[:, 0]) % (self.SAMPLING_RATE * self.sec)
+        end = 0
         # if overlap is False and the amount of seconds is bigger than 1 we need to
-        # adjust the step size
+        # adjust the step size and the end parameter
         if self.overlap == False and self.sec > 1:
+            end = len(df.iloc[:, 0]) % (self.SAMPLING_RATE * self.sec)
             additional = self.sec
+        elif self.overlap:
+            end = len(df.iloc[:, 0]) % self.SAMPLING_RATE + self.SAMPLING_RATE
 
         # create lists which store the data chunks and the labels
         chunks = []
@@ -207,7 +215,16 @@ class Preprocessing:
         """
 
         # initialize lists for the chunks, labels and patient IDs
-        list_chunks = []
+        # save list_chunks as a dask array to save memory
+        if self.model == "lstm":
+            list_chunks = da.empty((0, self.SAMPLING_RATE * self.sec, self.channels),
+                                   chunks=(1000, self.SAMPLING_RATE * self.sec, self.channels),
+                                   dtype="float32")
+        elif self.model == "hist_cnn":
+            list_chunks = da.empty((0, self.image_size * 100, self.image_size * 100, 3),
+                                   chunks=(1000, self.image_size, self.image_size, 3),
+                                   dtype="float32")
+
         list_labels = []
         list_patientID = []
         for path, df_labels in tuples:
@@ -223,11 +240,11 @@ class Preprocessing:
                     df = pd.read_pickle(f)
                     chunks, labels = self.chunk_label(df, df_labels, identifier)
 
-                    list_chunks.extend(chunks)
+                    list_chunks = da.append(list_chunks, chunks, axis=0)
                     list_labels.extend(labels)
                     list_patientID.extend(np.tile(patientID, labels.shape[0]))
 
-        return np.asarray(list_chunks), np.asarray(list_labels), np.asarray(list_patientID)
+        return list_chunks, np.asarray(list_labels), np.asarray(list_patientID)
 
     def modify_label_csv(self, path):
         """

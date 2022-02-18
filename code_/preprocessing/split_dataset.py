@@ -2,14 +2,13 @@ import numpy as np
 import pandas as pd
 import dask
 import os
-import tensorflow as tf
-
+import dask.array as da
 dask.config.set({"array.slicing.split_large_chunks": False})
 
 
 class Split:
 
-    def __init__(self, chunks, labels, patientID):
+    def __init__(self, chunks, labels, patientID, export_path, sec, model, batch_size, image_size):
         """
         Initialization of the Split object.
 
@@ -19,9 +18,16 @@ class Split:
         patientID (np.array):   Array of patient IDs corresponding to the chunks
         """
 
+        self.SAMPLING_RATE = 250
+        self.channels = 22
+        self.sec = sec
         self.chunks = chunks
         self.labels = labels
         self.patientID = patientID
+        self.export_path = export_path
+        self.model = model
+        self.batch_size = batch_size
+        self.image_size = image_size
 
     def find_nearest(self, array, value):
         """
@@ -108,23 +114,50 @@ class Split:
         # assign those chunks to the test dataset which belong to the test IDs
         test_dataset_chunks = list_chunks[np.argwhere(np.isin(list_patientID, test_IDs)).reshape(-1)]
         test_dataset_labels = list_labels[np.argwhere(np.isin(list_patientID, test_IDs)).reshape(-1)]
-        print("    Assigning completed", "\n")
 
+        print("    Assigning completed", "\n")
         print("        Dataset proportions:")
         print(f"        Train dataset: {round(len(train_dataset_chunks) / len(list_patientID), 4)}")
         print(f"        Validation dataset: {round(len(val_dataset_chunks) / len(list_patientID), 4)}")
-        print(f"        Test dataset: {round(len(test_dataset_chunks) / len(list_patientID), 4)}")
+        print(f"        Test dataset: {round(len(test_dataset_chunks) / len(list_patientID), 4)}, \n")
 
         train_labels = pd.DataFrame(train_dataset_labels).groupby(0).size()
         val_labels = pd.DataFrame(val_dataset_labels).groupby(0).size()
         test_labels = pd.DataFrame(test_dataset_labels).groupby(0).size()
-        print(train_labels[1] / train_labels.sum(), "\n", val_labels[1] / val_labels.sum(), "\n", test_labels[1] / test_labels.sum())
 
-        print("    Split the data...")
-        # split in train, validation and test dataset
-        train_dataset = tf.data.Dataset.from_tensor_slices((train_dataset_chunks.compute().astype("float32"), train_dataset_labels))
-        val_dataset = tf.data.Dataset.from_tensor_slices((val_dataset_chunks.compute().astype("float32"), val_dataset_labels))
-        test_dataset = tf.data.Dataset.from_tensor_slices((test_dataset_chunks.compute().astype("float32"), test_dataset_labels))
-        print("    Splitting completed")
+        print(f"        Label ratio:")
+        print(f"        Train dataset: {train_labels[1] / train_labels.sum()}")
+        print(f"        Val dataset: {val_labels[1] / val_labels.sum()}")
+        print(f"        Test dataset: {test_labels[1] / test_labels.sum()}")
 
-        return train_dataset, val_dataset, test_dataset
+        print("    Split and save the data...")
+        # remove previously exported hdf5 files
+        for filename in os.listdir(self.export_path):
+            f = os.path.join(self.export_path, filename)
+            # checking if it is a file
+            if f.endswith(".hdf5"):
+                os.remove(f)
+
+        # define chunk shapes for respective models
+        if self.model == "lstm":
+            chunk_shape = (self.batch_size, self.SAMPLING_RATE * self.sec, self.channels)
+        elif self.model == "hist_cnn":
+            chunk_shape = (self.batch_size, self.image_size * 100, self.image_size * 100, 3)
+        elif self.model == "cnn":
+            chunk_shape = (self.batch_size, self.SAMPLING_RATE * self.sec, self.channels)
+
+        # split in train, validation and test dataset and save it as hdf5 files
+        da.to_hdf5(f"{self.export_path}/train_dataset.hdf5",
+                   {"/samples": da.rechunk(train_dataset_chunks, chunks=chunk_shape),
+                    "/labels": da.from_array(train_dataset_labels)},
+                   compression="gzip")
+        da.to_hdf5(f"{self.export_path}/val_dataset.hdf5",
+                   {"/samples": da.rechunk(val_dataset_chunks, chunks=chunk_shape),
+                    "/labels": da.from_array(val_dataset_labels)},
+                   compression="gzip")
+        da.to_hdf5(f"{self.export_path}/test_dataset.hdf5",
+                   {"/samples": da.rechunk(test_dataset_chunks, chunks=chunk_shape),
+                    "/labels": da.from_array(test_dataset_labels)},
+                   compression="gzip")
+
+        print("    Saved")
