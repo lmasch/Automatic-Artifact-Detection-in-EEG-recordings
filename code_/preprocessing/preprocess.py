@@ -155,7 +155,7 @@ class Preprocessing:
         end = 0
         # if overlap is False and the amount of seconds is bigger than 1 we need to
         # adjust the step size and the end parameter
-        if self.overlap == False and self.sec > 1:
+        if self.overlap == False:
             end = len(df.iloc[:, 0]) % (self.SAMPLING_RATE * self.sec)
             additional = self.sec
         elif self.overlap:
@@ -222,7 +222,7 @@ class Preprocessing:
                                    dtype="float32")
         elif self.model == "hist_cnn":
             list_chunks = da.empty((0, self.image_size * 100, self.image_size * 100, 3),
-                                   chunks=(1000, self.image_size, self.image_size, 3),
+                                   chunks=(1000, self.image_size * 100, self.image_size * 100, 3),
                                    dtype="float32")
 
         list_labels = []
