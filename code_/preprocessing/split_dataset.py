@@ -8,7 +8,7 @@ dask.config.set({"array.slicing.split_large_chunks": False})
 
 class Split:
 
-    def __init__(self, chunks, labels, patientID, export_path, sec, model, batch_size, image_size):
+    def __init__(self, chunks, labels, patientID, export_path, sec, prep_type, batch_size, image_size):
         """
         Initialization of the Split object.
 
@@ -25,7 +25,7 @@ class Split:
         self.labels = labels
         self.patientID = patientID
         self.export_path = export_path
-        self.model = model
+        self.prep_type = prep_type
         self.batch_size = batch_size
         self.image_size = image_size
 
@@ -131,20 +131,19 @@ class Split:
         print(f"        Test dataset: {test_labels[1] / test_labels.sum()}")
 
         print("    Split and save the data...")
-        # remove previously exported hdf5 files
+
+        # remove previously exported hdf5 files in the export directory
         for filename in os.listdir(self.export_path):
             f = os.path.join(self.export_path, filename)
-            # checking if it is a file
+            # checking if it is a hdf5 file
             if f.endswith(".hdf5"):
                 os.remove(f)
 
         # define chunk shapes for respective models
-        if self.model == "lstm":
+        if self.prep_type == "normal":
             chunk_shape = (self.batch_size, self.SAMPLING_RATE * self.sec, self.channels)
-        elif self.model == "hist_cnn":
+        elif self.prep_type == "contour":
             chunk_shape = (self.batch_size, self.image_size * 100, self.image_size * 100, 3)
-        elif self.model == "cnn":
-            chunk_shape = (self.batch_size, self.SAMPLING_RATE * self.sec, self.channels)
 
         # split in train, validation and test dataset and save it as hdf5 files
         da.to_hdf5(f"{self.export_path}/train_dataset.hdf5",

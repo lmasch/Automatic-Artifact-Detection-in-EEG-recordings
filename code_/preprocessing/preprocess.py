@@ -13,7 +13,7 @@ dask.config.set({"array.slicing.split_large_chunks": False})
 
 class Preprocessing:
 
-    def __init__(self, model, std, sec, overlap, exclude, num, image_size):
+    def __init__(self, prep_type, std, sec, overlap, exclude, num, image_size):
         """
         Initialization of the Preprocessing object
 
@@ -27,7 +27,7 @@ class Preprocessing:
 
         self.SAMPLING_RATE = 250
         self.channels = 22
-        self.model = model
+        self.prep_type = prep_type
         self.std = std
         self.sec = sec
         self.overlap = overlap
@@ -135,7 +135,7 @@ class Preprocessing:
 
     def chunk_label(self, df, df_labels, identifier):
         """
-        This function preprocesses the TUH EEG data dependent on the specific model to use.
+        This function preprocesses the TUH EEG data dependent on the specific model indicated for usage.
 
         Args:
         df (DataFrame):         DataFrame containing the channels with respective samples.
@@ -150,6 +150,7 @@ class Preprocessing:
         # filter out consecutively occurring values
         df_cond = self.forward_shift(df, self.num) | self.backward_shift(df, self.num) | self.in_between(df, self.num)
         df = df[df_cond == False].dropna(thresh=16).fillna(df)
+        # df = (df - df.mean(axis=0)) / df.std(axis=0) if self.std else df
 
         additional = 1
         end = 0
@@ -186,13 +187,13 @@ class Preprocessing:
             filtered["stop"] = filtered["stop_time"].apply(lambda x: df_tmp.index[-1] if x > df_tmp.index[-1] else x)
             filtered["duration"] = filtered["stop"] - filtered["start"]
 
-            # if all artifacts in that chunk occur less than "sec * exclude" seconds and there
+            # if all artifacts in that chunk occur less than "exclude" seconds and there
             # is actually something in the filtered data frame we exclude this chunk
-            if not filtered.empty and np.all(filtered["duration"] < self.sec * self.exclude):
+            if not filtered.empty and np.all(filtered["duration"] < self.exclude):
                 continue
 
             # extra preprocessing steps for the CNN with contour plots
-            df_tmp = self.contour_plot(np.asarray(df_tmp)) if self.model == "hist_cnn" else df_tmp
+            df_tmp = self.contour_plot(np.asarray(df_tmp)) if self.prep_type == "contour" else df_tmp
 
             # append the dataframe to the chunk list
             chunks.append(df_tmp)
@@ -216,13 +217,13 @@ class Preprocessing:
 
         # initialize lists for the chunks, labels and patient IDs
         # save list_chunks as a dask array to save memory
-        if self.model == "lstm":
+        if self.prep_type == "normal":
             list_chunks = da.empty((0, self.SAMPLING_RATE * self.sec, self.channels),
-                                   chunks=(1000, self.SAMPLING_RATE * self.sec, self.channels),
+                                   chunks=(100, self.SAMPLING_RATE * self.sec, self.channels),
                                    dtype="float32")
-        elif self.model == "hist_cnn":
+        elif self.prep_type == "contour":
             list_chunks = da.empty((0, self.image_size * 100, self.image_size * 100, 3),
-                                   chunks=(1000, self.image_size * 100, self.image_size * 100, 3),
+                                   chunks=(100, self.image_size * 100, self.image_size * 100, 3),
                                    dtype="float32")
 
         list_labels = []

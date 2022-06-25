@@ -2,7 +2,7 @@
 
 REM SET root="D:/EEG dataset"
 SET root=%1
-SET model=%2
+SET prep_type=%2
 
 ECHO Run nedc_pystream.py
 REM CALL code_/exe_nedc_pystream.bat

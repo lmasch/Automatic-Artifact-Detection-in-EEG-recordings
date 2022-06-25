@@ -7,7 +7,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 parser = argparse.ArgumentParser(description="Chunking, labeling and splitting the dataset")
 parser.add_argument("input_path", help="Path to the root folder")
 parser.add_argument("export_path", help="Path where the output should be exported")
-parser.add_argument("-model", type=str, help="Name of the neural network model")
+parser.add_argument("-prep", type=str, help="Define the preprocessing type")
 parser.add_argument("-std", type=str, choices=("True", "False"), help="Standardize each chunk to mean = 0 and standard deviation = 1")
 parser.add_argument("-sec", type=int, help="Amount of seconds for each chunk")
 parser.add_argument("-overlap", type=str, choices=("True", "False"), help="Defines whether the chunks should overlap or not")
@@ -20,7 +20,7 @@ overlap = args.overlap == "True"
 # define image size for the hist_cnn model
 image_size = 2
 # initialize Preprocessing object
-preprocessor = Preprocessing(args.model, std, args.sec, overlap, args.exclude, args.num, image_size=image_size)
+preprocessor = Preprocessing(args.prep, std, args.sec, overlap, args.exclude, args.num, image_size=image_size)
 
 # modify the tcp_ar labels
 df_labels_ar = preprocessor.modify_label_csv(f"{args.input_path}/v2.0.0/csv/labels_01_tcp_ar.csv")
@@ -32,5 +32,5 @@ tuples = zip(["data/files_processed_ar", "data/files_processed_le"], [df_labels_
 list_chunks, list_labels, list_patientID = preprocessor.preprocess_all_files(tuples)
 
 print("Split the data into train-, validation- and test dataset")
-splitter = Split(list_chunks, list_labels, list_patientID, args.export_path, args.sec, args.model, batch_size=64, image_size=image_size)
+splitter = Split(list_chunks, list_labels, list_patientID, args.export_path, args.sec, args.prep, batch_size=64, image_size=image_size)
 splitter.split_dataset()
