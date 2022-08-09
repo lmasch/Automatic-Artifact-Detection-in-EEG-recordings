@@ -18,15 +18,20 @@ class Preprocessing:
         Initialization of the Preprocessing object
 
         Args:
-        model (string):         Neural Network type for which the data should be preprocessed
-        std (bool):             Standardize each chunk to mean = 0 and standard deviation = 1.
+        prep_type (String):     Indicates the preprocessing type (either "normal" or "contour").
+        std (bool):             Standardize each chunk, current and previous chunk or entire recording
+                                to mean = 0 and standard deviation = 1.
         sec (int):              Amount of seconds for each chunk.
         overlap (bool):         Defines whether the chunks should overlap or not.
         exclude (float):        Coefficient to calculate the threshold of exclusion criterion
+        num (int):              Maximum number of constant consecutively occurring values allowed.
+        image_size (int):       Size of the contour images.
         """
 
         self.SAMPLING_RATE = 250
         self.channels = 22
+        self.include_rare = False
+        self.rare_art = ["eyem_shiv", "shiv"]
         self.prep_type = prep_type
         self.std = std
         self.sec = sec
@@ -150,7 +155,8 @@ class Preprocessing:
         # filter out consecutively occurring values
         df_cond = self.forward_shift(df, self.num) | self.backward_shift(df, self.num) | self.in_between(df, self.num)
         df = df[df_cond == False].dropna(thresh=16).fillna(df)
-        # df = (df - df.mean(axis=0)) / df.std(axis=0) if self.std else df
+        # Standardization of entire recording
+        df = (df - df.mean(axis=0)) / df.std(axis=0) if self.std == "Entire" else df
 
         additional = 1
         end = 0
@@ -170,8 +176,22 @@ class Preprocessing:
         for i in range(0, len(df.iloc[:, 0]) - end, self.SAMPLING_RATE * additional):
             # cut out the specified amount of seconds
             df_tmp = df.iloc[i:i + self.SAMPLING_RATE * self.sec, :]
-            # standardize the data
-            df_tmp = (df_tmp - df_tmp.mean(axis=0)) / df_tmp.std(axis=0) if self.std else df_tmp
+
+            if self.std == "True":
+                # standardize the data on current chunk
+                df_tmp = (df_tmp - df_tmp.mean(axis=0)) / df_tmp.std(axis=0)
+            elif self.std =="PrevCur":
+                # standardizes the current- + previous chunk
+                if i - self.SAMPLING_RATE * self.sec < 0:
+                    df_dub = df.iloc[:i + self.SAMPLING_RATE * self.sec * 2, :]
+                    # standardize
+                    df_dub = (df_dub - df_dub.mean(axis=0)) / df_dub.std(axis=0)
+                    df_tmp = df_dub.iloc[i:i + self.SAMPLING_RATE * self.sec, :]
+                else:
+                    df_dub = df.iloc[i - self.SAMPLING_RATE * self.sec:i + self.SAMPLING_RATE * self.sec, :]
+                    # standardize
+                    df_dub = (df_dub - df_dub.mean(axis=0)) / df_dub.std(axis=0)
+                    df_tmp = df_dub.iloc[self.SAMPLING_RATE * self.sec:, :]
 
             # search for the rows with ID's in question
             df_ID = df_labels[df_labels["key"] == identifier]
@@ -186,11 +206,18 @@ class Preprocessing:
             filtered["start"] = filtered["start_time"].apply(lambda x: df_tmp.index[0] if x < df_tmp.index[0] else x)
             filtered["stop"] = filtered["stop_time"].apply(lambda x: df_tmp.index[-1] if x > df_tmp.index[-1] else x)
             filtered["duration"] = filtered["stop"] - filtered["start"]
+            art = np.unique(filtered["artifact_label"])
 
-            # if all artifacts in that chunk occur less than "exclude" seconds and there
-            # is actually something in the filtered data frame we exclude this chunk
-            if not filtered.empty and np.all(filtered["duration"] < self.exclude):
-                continue
+            if self.include_rare:
+                # if all artifacts in that chunk occur less than "exclude" seconds and there
+                # is actually something in the filtered data frame we exclude this chunk
+                if not filtered.empty and (np.all(np.all(filtered["duration"] < self.exclude) or (np.all(np.isin(art, self.rare_art))))):
+                    continue
+            else:
+                # if all artifacts in that chunk occur less than "exclude" seconds and there
+                # is actually something in the filtered data frame we exclude this chunk
+                if not filtered.empty and np.all(filtered["duration"] < self.exclude):
+                    continue
 
             # extra preprocessing steps for the CNN with contour plots
             df_tmp = self.contour_plot(np.asarray(df_tmp)) if self.prep_type == "contour" else df_tmp
@@ -262,7 +289,9 @@ class Preprocessing:
         df_labels = pd.read_csv(path, skiprows=4)
         df_labels = df_labels.dropna()
         # remapping the columns
-        df_labels = df_labels.rename(mapper={'# key': 'key',  "channel_label": "channel_label",  " start_time": "start_time", " stop_time": "stop_time", " artifact_label": "artifact_label"}, axis='columns')
+        df_labels = df_labels.rename(mapper={'# key': 'key',  "channel_label": "channel_label",
+                                             " start_time": "start_time", " stop_time": "stop_time",
+                                             " artifact_label": "artifact_label"}, axis='columns')
 
         return df_labels
 
