@@ -12,19 +12,19 @@ This repository contains all preprocessing programs and model implementations in
 ## Short Description of the Folder Structure  <a name="navigation"></a>
 In the following I shortly describe where specific files of interest can be found, i.e. which files are contained in which folder.
 
-- **code**  
+- **code** \
   The code directory includes the batch files to coordinate the executions of the programs, python scripts for the preprocessing software and jupyter notebooks for the Deep Learning models. Furthermore, the weights, which were obtained during the experiments, are included as well.
 
-- **data**
+- **data** \
   The data directory is an empty directory. Here, once executed, the output of the preprocessing software will be stored in several directories.
 
-- **plots**
+- **plots** \
   Here the figures used in the thesis and additional performance plots are provided.
 
-- environment.yml
+- environment.yml \
   This file is important to install the virtual environment.
 
-- params_04.txt and params_05.txt
+- params_04.txt and params_05.txt \
   These text files provide the parameters for the nedc_pystream software and have to stay in the root folder.
 
 
