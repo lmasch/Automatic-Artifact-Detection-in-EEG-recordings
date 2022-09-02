@@ -15,6 +15,9 @@ LSTMs and CNNs for Automatic Classification of Artifacts in EEG Recordings".
 In the following I describe where specific files of interest can be found, i.e. which files are contained in which folder.
 
 - **code**
+
+The code directory includes the batch files to coordinate the executions of the programs, python scripts for the preprocessing software and jupyter notebooks for the Deep Learning models. Furthermore, the weights, which were obtained during the experiments, are included as well. The `models` directory is therefore organized in the following structure:
+
   - models
     - 1D_CNN
       - weights
@@ -39,6 +42,7 @@ In the following I describe where specific files of interest can be found, i.e. 
       - LSTM_light.ipynb
       - LSTM_medium.ipynb
 
+The `preprocessing` folder accordingly encompasses the 
 
   - preprocessing
 
@@ -84,6 +88,7 @@ arguments:
 Example usage:
   code\preprocessing_main.bat "D:/EEG dataset" "data/prep_normal/example" "normal" "True" 2 "True" 0.02 10
 
-Note: Please also indicate Boolean values in parentheses.
+Note:
+  Please also indicate Boolean values in parentheses.
 
 ```
