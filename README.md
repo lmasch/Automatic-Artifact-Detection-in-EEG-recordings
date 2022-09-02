@@ -46,7 +46,7 @@ arguments:
 Example usage:
   code\preprocessing_nedc_pystream.bat "D:/EEG dataset"
 ```
-This process might take a while. After completing the first preprocessing step, the main preprocessing program needs to be executed. Note, that before running this program, the nedc_pystream software must be executed once. This program requires several arguments according to the intended preprocessing parameters. Have a look at the usage below:
+This process might take a while. After completing the first preprocessing step, the main preprocessing program needs to be executed. Note, that before running this program, the nedc_pystream software must have been executed once. This program requires several arguments according to the intended preprocessing parameters. Have a look at the usage below:
 ```
 usage:
   code\preprocessing_main.bat root export_directory prep std sec overlap exclude num
