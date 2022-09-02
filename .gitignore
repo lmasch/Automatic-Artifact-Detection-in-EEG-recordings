@@ -5,5 +5,3 @@
 .idea
 
 .ipynb_checkpoints
-
-logs/gradient_tape
