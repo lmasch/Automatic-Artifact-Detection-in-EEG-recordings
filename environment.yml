@@ -5,18 +5,18 @@ channels:
  - defaults
 
 dependencies:
-  - python=3.8
-  - scikit-learn
-  - numpy
+  - python=3.7.9
+  - scikit-learn=0.24.1
+  - numpy=1.19.1
   - matplotlib=3.5.0
-  - jupyter
-  - jupyterlab
-  - ipython
+  - jupyter=*
+  - jupyterlab=*
+  - ipython=7.19.0
   - tensorflow
-  - tensorboard
-  - pandas
-  - seaborn
-  - pyedflib
-  - scipy
+  - tensorboard=2.4.0
+  - pandas=1.2.4
+  - seaborn=0.11.1
+  - pyedflib=0.1.23
+  - scipy=1.6.2
   - tqdm
-  - dask
+  - dask=2021.12.0

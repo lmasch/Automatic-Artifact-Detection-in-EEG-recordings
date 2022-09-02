@@ -33,7 +33,7 @@ When using Anaconda, open your console and navigate to this folder. In the conso
 
 
 ## Overall Pipeline <a name="pipeline"></a>
-First, the 'TUH Artifact Corpus' has to be downloaded from the [TUH website](https://isip.piconepress.com/projects/tuh_eeg/html/downloads.shtml). Note, that due to new updates on this corpus, the provided preprocessing programs may no longer work in this configuration. Afterwards, to run the programs and models on your machine, please install the virtual environment using `conda`. To do that, please follow the instructions in the [Section above](#virtualenv).
+To run or test the Deep Learning models, the data needs to be preprocessed. First, the 'TUH Artifact Corpus' has to be downloaded from the [TUH website](https://isip.piconepress.com/projects/tuh_eeg/html/downloads.shtml). Note, that due to new updates on this corpus, the provided preprocessing programs may no longer work in this configuration. Afterwards, to run the programs and models on your machine, please install the virtual environment using `conda`. To do that, please follow the instructions in the [Section above](#virtualenv).
 
 The data is first of all preprocessed by the 'nedc_pystream' software. To run this program, open your console, activate your environment by typing `conda activate artifact` and change your directory to the root of this repository. Next, execute the nedc_pystream software as indicated below, please provide your own path to the root directory where you stored the downloaded data set as an argument for this execution. Have a look at the usage:
 ```
