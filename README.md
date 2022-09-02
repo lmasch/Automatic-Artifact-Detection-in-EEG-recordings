@@ -2,7 +2,7 @@
 
 ## Content
 #### [Description and Background](#description)
-#### [Navigation through this repository](#navigation)
+#### [Short Description of the Folder Structure](#navigation)
 #### [Virtual Environment](#virtualenv)
 #### [Overall Pipeline](#pipeline)
 
@@ -11,40 +11,15 @@ This repository contains all preprocessing programs and model implementations
 involved in or needed for my thesis "Performance and Reliability Comparison of
 LSTMs and CNNs for Automatic Classification of Artifacts in EEG Recordings".
 
-## Navigation through this repository <a name="navigation"></a>
+## Short Description of the Folder Structure <a name="navigation"></a>
 In the following I describe where specific files of interest can be found, i.e. which files are contained in which folder.
 
 - **code**
+The code directory includes the batch files to coordinate the executions of the programs, python scripts for the preprocessing software and jupyter notebooks for the Deep Learning models. Furthermore, the weights, which were obtained during the experiments, are included as well. The `models` directory is therefore organized in the following structure (the individual files in the subfolders of the `weights` directories were not indicated for better readability):
 
-The code directory includes the batch files to coordinate the executions of the programs, python scripts for the preprocessing software and jupyter notebooks for the Deep Learning models. Furthermore, the weights, which were obtained during the experiments, are included as well. The `models` directory is therefore organized in the following structure:
+- **data**
 
-  - models
-    - 1D_CNN
-      - weights
-        - Experiment 1
-        - Experiment 2
-        - Experiment 3
-      - 1D_CNN_large.ipynb
-      - 1D_CNN_light.ipynb
-    - ContourCNN
-      - weights
-        - Experiment 1
-        - Experiment 2
-        - Experiment 3
-      - ContourCNN_large.ipynb
-      - ContourCNN_light.ipynb
-    - LSTM
-      - weights
-        - Experiment 1
-        - Experiment 2
-        - Experiment 3
-      - LSTM_large.ipynb
-      - LSTM_light.ipynb
-      - LSTM_medium.ipynb
 
-The `preprocessing` folder accordingly encompasses the 
-
-  - preprocessing
 
 ## Virtual Environment <a name="virtualenv"></a>
 
