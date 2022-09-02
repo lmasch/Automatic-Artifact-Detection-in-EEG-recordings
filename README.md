@@ -67,3 +67,5 @@ Example usage:
 Note:
   Please indicate everything, except for numbers, in parentheses as shown in the example.
 ```
+
+In order to use the notebooks for each model, either upload them to Google Colab, or open Jupyter Lab by typing `jupyter lab` in your console. Afterwards, select the respective file.
