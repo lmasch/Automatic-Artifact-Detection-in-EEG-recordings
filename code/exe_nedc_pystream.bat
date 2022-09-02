@@ -1,5 +1,11 @@
 @ECHO OFF
 
+REM create folders
+mkdir "data/files_ar"
+mkdir "data/files_le"
+mkdir "data/files_processed_ar"
+mkdir "data/files_processed_le"
+
 REM execute copy_files.py
 ECHO Copying edf files from "01_tcp_ar" to folder "files_ar"
 python -m code.preprocessing.copy_files %root% "data/files_ar" -ar
