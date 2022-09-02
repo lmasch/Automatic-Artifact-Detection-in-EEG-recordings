@@ -1,0 +1,22 @@
+name: artifact
+
+channels:
+ - conda-forge
+ - defaults
+
+dependencies:
+  - python=3.8
+  - scikit-learn
+  - numpy
+  - matplotlib=3.5.0
+  - jupyter
+  - jupyterlab
+  - ipython
+  - tensorflow
+  - tensorboard
+  - pandas
+  - seaborn
+  - pyedflib
+  - scipy
+  - tqdm
+  - dask

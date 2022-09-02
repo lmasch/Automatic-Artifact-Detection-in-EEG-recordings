@@ -39,17 +39,17 @@ Example usage:
 This process might take a while. After completing the first preprocessing step, the main preprocessing program needs to be executed. This program requires several arguments according to your intended preprocessing parameters. Have a look at the usage below:
 ```
 usage:
-  code\preprocessing_main.bat root export_directory -prep -std -sec -overlap -exclude -num
+  code\preprocessing_main.bat root export_directory prep std sec overlap exclude num
 
 arguments:
   root:               Path to the root folder where the data set has been stored
   export_directory:   Path where the output should be exported to
-  - prep:             Preprocessing type (either "normal" or "contour")
-  - std:              Standardization option (choose between "True", "False", "PrevCur", "Entire")
-  - sec:              Amount of seconds for each segment
-  - overlap:          Defines whether the segments should overlap or not (either "True" or "False")
-  - exclude:          Coefficient to calculate the threshold of exclusion criterion
-  - num:              Number of identical values allowed to occur after each other
+  prep:             Preprocessing type (either "normal" or "contour")
+  std:              Standardization option (choose between "True", "False", "PrevCur", "Entire")
+  sec:              Amount of seconds for each segment
+  overlap:          Defines whether the segments should overlap or not (either "True" or "False")
+  exclude:          Coefficient to calculate the threshold of exclusion criterion
+  num:              Number of identical values allowed to occur after each other
 
 Example usage:
   code\preprocessing_main.bat "D:/EEG dataset" "data/prep_normal/example" "normal" "True" 2 "True" 0.02 10
